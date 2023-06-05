@@ -26,8 +26,13 @@ using namespace uavcan::node;
  * CONSTANTS
  **************************************************************************************/
 
-static int const MKRCAN_MCP2515_CS_PIN  = 3;
-static int const MKRCAN_MCP2515_INT_PIN = 7;
+static int const MKRCAN_MCP2515_CS_PIN  = 21;
+static int const MKRCAN_MCP2515_INT_PIN = 22;
+#define SPI_INT 22
+#define SPI_CS 21
+#define SPI_MISO 16
+#define SPI_MOSI 19
+#define SPI_SCK 18
 
 /**************************************************************************************
  * FUNCTION DECLARATION
@@ -63,17 +68,20 @@ void setup()
   Serial.println("|---- OpenCyphal Heartbeat Subscription With Metadata  Example ----|");
 
   /* Setup SPI access */
+  SPI.setRX(SPI_MISO);
+  SPI.setTX(SPI_MOSI);
+  SPI.setSCK(SPI_SCK);
   SPI.begin();
   pinMode(MKRCAN_MCP2515_CS_PIN, OUTPUT);
   digitalWrite(MKRCAN_MCP2515_CS_PIN, HIGH);
 
   /* Attach interrupt handler to register MCP2515 signaled by taking INT low */
   pinMode(MKRCAN_MCP2515_INT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(MKRCAN_MCP2515_INT_PIN), []() { mcp2515.onExternalEventHandler(); }, LOW);
+  attachInterrupt(digitalPinToInterrupt(MKRCAN_MCP2515_INT_PIN), []() { mcp2515.onExternalEventHandler(); }, FALLING);
 
   /* Initialize MCP2515 */
   mcp2515.begin();
-  mcp2515.setBitRate(CanBitRate::BR_250kBPS_16MHZ);
+  mcp2515.setBitRate(CanBitRate::BR_1000kBPS_16MHZ);
   mcp2515.setNormalMode();
 
   Serial.println("setup finished");
